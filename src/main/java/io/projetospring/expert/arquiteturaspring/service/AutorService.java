@@ -4,6 +4,7 @@ import io.projetospring.expert.arquiteturaspring.model.Autor;
 import io.projetospring.expert.arquiteturaspring.repository.AutorRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -26,4 +27,23 @@ public class AutorService {
     public void deleteAutor(Autor autor) {
         autorRepository.delete(autor);
     }
+
+    public List<Autor> searchAutor(String nome, String nacionalidade){
+
+        if(nome != null && nacionalidade != null){
+            return autorRepository.findByNomeAndNacionalidade(nome, nacionalidade);
+        }
+
+        if(nome != null){
+            return autorRepository.findByNome(nome);
+        }
+
+        if(nacionalidade != null){
+            return autorRepository.findByNacionalidade(nacionalidade);
+        }
+
+        return autorRepository.findAll();
+
+    }
+
 }
