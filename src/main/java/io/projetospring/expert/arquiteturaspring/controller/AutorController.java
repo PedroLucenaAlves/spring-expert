@@ -12,7 +12,12 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A camada de serveço trata do domínio da aplicação. É a ponte entre o controller e o repository executando as regras de negócios
@@ -43,10 +48,9 @@ public class AutorController {
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<AutorResponseDto> obterDetalhes(@PathVariable String id){
-        Long idAutor = Long.parseLong(id);
+    public ResponseEntity<AutorResponseDto> obterDetalhes(@PathVariable Long id){
 
-        Optional<Autor> autorOptional = autorService.obterPorId(idAutor);
+        Optional<Autor> autorOptional = autorService.obterPorId(id);
 
         //verificando a existencia de um autor
         if(autorOptional.isPresent()){
@@ -89,5 +93,30 @@ public class AutorController {
 
     }
 
+    @GetMapping
+    public ResponseEntity<?> searchAutor( //<?> permite qualquer tipo objeto como List, Map, String e classes DTOs
+            @RequestParam(value = "nome", required = false) String nome, //requestParam sao os valores que passamos nas querys params da requisicao / required false (parametros sao opcionais)
+            @RequestParam(value = "nacionalidade", required = false) String nacionalidade){
+
+       List<Autor> resultadoPesquisa = autorService.searchAutor(nome, nacionalidade);
+
+        if (resultadoPesquisa.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Autor não encontrado !"));
+        }
+
+
+        List<AutorDTO> lista = resultadoPesquisa
+               .stream()
+               .map(autor -> new AutorDTO( //.map realiza a mesma funcao que um for faria , ele vai pegar cada Autor e passar para AutorDTO
+               autor.getId(),
+               autor.getNome(),
+               autor.getDataNascimento(),
+               autor.getNacionalidade())
+               ).collect(Collectors.toList()); //collect toList transforma nosso stream em List
+
+        return ResponseEntity.ok(lista);
+
+    }
 
 }
